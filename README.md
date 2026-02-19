@@ -177,6 +177,62 @@ curl -LsSf https://raw.githubusercontent.com/zeroclaw-labs/zeroclaw/main/scripts
 
 ## Quick Start
 
+### 🚀 Quick Start (Automated Linux Install)
+
+This guide works for **any Linux distribution** (Debian, Ubuntu, Arch, Fedora, etc.) and handles everything automatically:
+1. Installs system dependencies.
+2. Installs Rust (if not present).
+3. Downloads the latest ZeroClaw binary from this repository.
+4. Starts the `onboard` setup wizard.
+
+**One-Line Installation:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/zeroclaw-labs/zeroclaw/main/scripts/install-release.sh | bash
+```
+
+---
+
+### Manual Installation (Step-by-Step)
+
+If you prefer to do it manually, follow these steps:
+
+#### 1. Install Rust & Dependencies
+First, we need to ensure your system has the basic tools and the Rust programming language installed.
+
+**For Debian/Ubuntu:**
+```bash
+sudo apt update && sudo apt install curl build-essential
+```
+
+**Install Rust (Official Method):**
+Copy and paste this command into your terminal:
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+*Press Enter to proceed with default installation. After it finishes, run `source $HOME/.cargo/env` to activate it.*
+
+#### 2. Download & Install ZeroClaw
+1. Go to the [Releases Page](../../releases/latest) of this repository.
+2. Download the file named `zeroclaw`.
+3. Open your terminal in the download folder and run:
+
+```bash
+# Make it executable
+chmod +x zeroclaw
+
+# Move it to your system path (so you can run it from anywhere)
+sudo mv zeroclaw /usr/local/bin/
+
+# Verify installation
+zeroclaw --version
+```
+
+#### 3. Setup (Onboard)
+Run the setup wizard to configure your AI provider (Gemini, OpenAI, etc.):
+```bash
+zeroclaw onboard
+```
+
 ### One-click bootstrap
 
 ```bash
