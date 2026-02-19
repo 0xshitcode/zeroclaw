@@ -67,6 +67,7 @@ jobs:
           # Create Release
           gh release create "$TAG_NAME" \
             "target/release/zeroclaw" \
+            --repo "${{ github.repository }}" \
             --title "$TITLE" \
             --notes "Automated build from upstream zeroclaw-labs/zeroclaw on $(date)." \
             --generate-notes
