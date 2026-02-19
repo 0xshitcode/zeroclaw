@@ -1,0 +1,72 @@
+name: Auto Build & Release
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # Check for updates every 6 hours
+  workflow_dispatch:      # Allow manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  sync-build-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add Upstream Remote
+        run: git remote add upstream https://github.com/zeroclaw-labs/zeroclaw.git
+
+      - name: Fetch Upstream
+        run: git fetch upstream
+
+      - name: Check for Updates
+        id: check_updates
+        run: |
+          UPSTREAM_HEAD=$(git rev-parse upstream/main)
+          LOCAL_HEAD=$(git rev-parse HEAD)
+          echo "Upstream: $UPSTREAM_HEAD"
+          echo "Local: $LOCAL_HEAD"
+          
+          if [ "$UPSTREAM_HEAD" != "$LOCAL_HEAD" ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "updates_available=true" >> $GITHUB_OUTPUT
+            echo "Updates found or manual trigger. Proceeding."
+          else
+            echo "updates_available=false" >> $GITHUB_OUTPUT
+            echo "No updates found."
+          fi
+
+      - name: Sync with Upstream
+        if: steps.check_updates.outputs.updates_available == 'true'
+        run: |
+          git merge upstream/main --no-edit -m "Sync with upstream $(date +'%Y-%m-%d')"
+          git push origin main
+
+      - name: Build Release Binary
+        if: steps.check_updates.outputs.updates_available == 'true'
+        run: |
+          cargo build --release --verbose
+
+      - name: Create GitHub Release
+        if: steps.check_updates.outputs.updates_available == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME="v-auto-$(date +'%Y%m%d-%H%M')"
+          TITLE="Auto-Build Release $(date +'%Y-%m-%d %H:%M')"
+          
+          # Create Release
+          gh release create "$TAG_NAME" \
+            "target/release/zeroclaw" \
+            --title "$TITLE" \
+            --notes "Automated build from upstream zeroclaw-labs/zeroclaw on $(date)." \
+            --generate-notes
