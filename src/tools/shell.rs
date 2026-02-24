@@ -38,7 +38,7 @@ fn is_valid_env_var_name(name: &str) -> bool {
     chars.all(|ch| ch.is_ascii_alphanumeric() || ch == '_')
 }
 
-fn collect_allowed_shell_env_vars(security: &SecurityPolicy) -> Vec<String> {
+pub(super) fn collect_allowed_shell_env_vars(security: &SecurityPolicy) -> Vec<String> {
     let mut out = Vec::new();
     let mut seen = HashSet::new();
     for key in SAFE_ENV_VARS
@@ -164,11 +164,17 @@ impl Tool for ShellTool {
 
                 // Truncate output to prevent OOM
                 if stdout.len() > MAX_OUTPUT_BYTES {
-                    stdout.truncate(stdout.floor_char_boundary(MAX_OUTPUT_BYTES));
+                    stdout.truncate(crate::util::floor_utf8_char_boundary(
+                        &stdout,
+                        MAX_OUTPUT_BYTES,
+                    ));
                     stdout.push_str("\n... [output truncated at 1MB]");
                 }
                 if stderr.len() > MAX_OUTPUT_BYTES {
-                    stderr.truncate(stderr.floor_char_boundary(MAX_OUTPUT_BYTES));
+                    stderr.truncate(crate::util::floor_utf8_char_boundary(
+                        &stderr,
+                        MAX_OUTPUT_BYTES,
+                    ));
                     stderr.push_str("\n... [stderr truncated at 1MB]");
                 }
 
